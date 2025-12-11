@@ -1,0 +1,11 @@
+prefix=/Users/vasanthkumarr/Documents/Projects/AWS_Blog_Generator/venv
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+toolexeclibdir=${libdir}
+includedir=/Users/vasanthkumarr/Documents/Projects/AWS_Blog_Generator/venv/include
+
+Name: libffi
+Description: Library supporting Foreign Function Interfaces
+Version: 3.4.4
+Libs: -L${toolexeclibdir} -lffi
+Cflags: -I${includedir}
