@@ -12,34 +12,31 @@ def aws_blog_generator(blogtopic:str)->str:
 
     body = {
         "prompt": prompt,
-        "max_tokens": 500,
+        "max_gen_len": 500,
         "temperature": 0.7,
         "top_p": 0.95,
-        "n": 1,
-        "stop": ["[/INST]"]
     }
 
     try:
-        bedrock = boto3.client("bedrock_runtime", region_name="us-east-1",
+        bedrock = boto3.client(service_name="bedrock-runtime", region_name="us-east-1",
                                 config=botocore.config.Config(
                                     read_timeout=300, retries={"max_attempts": 3}))
         
-        response= bedrock.invoke_model(body=json.dumps(),
-            modelId=os.environ.get("meta.llama3-8b-instruct-v1:0"))
+        response= bedrock.invoke_model(body=json.dumps(body),
+            modelId="meta.llama3-8b-instruct-v1:0")
         
         response_content = response.get('body').read()
-        json.loads(response_content)
-        print(response_content)
-        blog_detals = response_content['generations'][0]['text']
+        response_data = json.loads(response_content)
+        blog_details = response_data['generation']
 
-        return blog_detals
+        return blog_details
     
     except Exception as e:
         print(f"Error generating blog post: {e}")
         return "Error generating blog post."
     
 
-def save_blog_to_s3( s3_key, s3_bucket):
+def save_blog_to_s3( s3_key, s3_bucket, generate_blog):
     s3 = boto3.client('s3')
     try:
         s3.put_object(Bucket=s3_bucket, Key=s3_key, Body=generate_blog)
@@ -54,11 +51,11 @@ def lambda_handler(event, context):
     event=json.loads(event['body'])
     blogtopic = event['blogtopic']
 
-    generate_blog =blog_generator(blogtopic=blogtopic)
+    generate_blog =aws_blog_generator(blogtopic=blogtopic)
 
     if generate_blog:
         current_time = datetime.now().strftime("%H:%M:%S")
-        s3_key = f"blog-output"/{current_time}.txt
+        s3_key = f"blog-output/{current_time}.txt"
         s3_bucket="aws-blog-generator-using-bedrock"
         save_blog_to_s3(s3_key, s3_bucket,generate_blog)
     else:
