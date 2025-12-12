@@ -5,7 +5,7 @@ import json
 from datetime import datetime
 
 
-def aws_blog_generater(blogtopic:str)->str:
+def aws_blog_generator(blogtopic:str)->str:
     prompt = f"""<s>[INST]Human: Write a detailed blog post about {blogtopic} in markdown 
     format with 100 words and it has to be clear and interesting."""
 
@@ -54,12 +54,12 @@ def lambda_handler(event, context):
     event=json.loads(event['body'])
     blogtopic = event['blogtopic']
 
-    generate_blog =blog_generater(blogtopic=blogtopic)
+    generate_blog =blog_generator(blogtopic=blogtopic)
 
     if generate_blog:
         current_time = datetime.now().strftime("%H:%M:%S")
         s3_key = f"blog-output"/{current_time}.txt
-        s3_bucket="awsbloggenerater"
+        s3_bucket="aws-blog-generator-using-bedrock"
         save_blog_to_s3(s3_key, s3_bucket,generate_blog)
     else:
         print("No blog generated.")
